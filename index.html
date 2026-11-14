@@ -1,1 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Learn programming with clear lessons, examples and an interactive playground." />
+  <title>CodeOrbit — Learn to build</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="announcement"><span class="spark">✦</span> A better way to learn code <span class="announcement-muted">— practical lessons, zero noise.</span></div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="CodeOrbit home"><span class="brand-mark">⌘</span><span>code<span class="brand-accent">orbit</span></span></a>
+    <nav class="top-links">
+      <a class="active" href="#explore">Learn</a><a href="#playground">Playground</a><a href="#paths">Learning paths</a>
+    </nav>
+    <div class="top-actions">
+      <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">☾</button>
+      <button class="btn btn-quiet" id="adminOpen">Admin</button>
+      <a class="btn btn-primary" href="#explore">Start learning <span>↗</span></a>
+    </div>
+    <button class="mobile-menu" id="mobileMenu" aria-label="Open menu">☰</button>
+  </header>
 
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="eyebrow-dot"></span> THE LEARNING PLATFORM FOR BUILDERS</div>
+        <h1>Learn to code.<br><span class="gradient-text">Build what matters.</span></h1>
+        <p class="hero-description">Clear, structured tutorials that take you from your first line of code to real-world projects. Learn at your pace, practice as you go.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-large" href="#explore">Explore courses <span>→</span></a>
+          <a class="text-link" href="#playground"><span class="play-icon">▶</span> Try the playground</a>
+        </div>
+        <div class="hero-proof"><div class="avatar-stack"><i>JS</i><i>Py</i><i>++</i><i>H</i></div><span><b>Learn by doing</b> · lessons + live examples</span></div>
+      </div>
+      <div class="hero-visual">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="code-card">
+          <div class="window-bar"><div class="window-dots"><i></i><i></i><i></i></div><span>hello_world.py</span><span class="window-status">● Live preview</span></div>
+          <div class="code-content">
+            <div class="line"><span class="ln">01</span><span><em>def</em> <b>build_something</b>():</span></div>
+            <div class="line"><span class="ln">02</span><span class="indent"><em>message</em> = <strong>"Your next idea starts here."</strong></span></div>
+            <div class="line"><span class="ln">03</span><span class="indent"><em>print</em>(message)</span></div>
+            <div class="line"><span class="ln">04</span><span></span></div>
+            <div class="line"><span class="ln">05</span><span><b>build_something</b>() <span class="cursor"></span></span></div>
+          </div>
+          <div class="terminal"><div><span class="terminal-dot"></span> OUTPUT</div><p>✦ Your next idea starts here.</p></div>
+        </div>
+        <div class="float-chip chip-top"><span>✦</span> Learn by building</div>
+        <div class="float-chip chip-bottom"><span class="chip-check">✓</span> Your progress, saved</div>
+      </div>
+    </section>
+
+    <section class="stats-row">
+      <div><strong>12<span>+</span></strong><small>Learning topics</small></div>
+      <div><strong>150<span>+</span></strong><small>Lessons to explore</small></div>
+      <div><strong>100<span>%</span></strong><small>Learn at your pace</small></div>
+      <div class="stats-note">START SMALL. <b>BUILD BIG.</b></div>
+    </section>
+
+    <section class="content-section" id="explore">
+      <div class="section-heading">
+        <div><div class="eyebrow">YOUR NEXT SKILL STARTS HERE</div><h2>Explore the <span class="gradient-text">universe.</span></h2><p>Pick a topic. Follow the path. Make something great.</p></div>
+        <div class="search-wrap"><span>⌕</span><input id="courseSearch" type="search" placeholder="Search courses..." /><kbd>⌘ K</kbd></div>
+      </div>
+      <div class="category-tabs" id="categoryTabs">
+        <button class="tab active" data-category="All">All topics <span>12</span></button>
+        <button class="tab" data-category="Frontend">Frontend</button>
+        <button class="tab" data-category="Programming">Programming</button>
+        <button class="tab" data-category="Database">Database</button>
+        <button class="tab" data-category="Career">Career</button>
+      </div>
+      <div class="course-grid" id="courseGrid"></div>
+    </section>
+
+    <section class="feature-band" id="paths">
+      <div class="feature-copy"><div class="eyebrow light-eyebrow">MORE THAN JUST TUTORIALS</div><h2>Understand it.<br><span>Then make it yours.</span></h2><p>Great developers aren't built by watching. They're built by experimenting, breaking things, and trying again.</p><a class="btn btn-light" href="#playground">Open playground <span>↗</span></a></div>
+      <div class="feature-points"><div class="feature-point"><span>01</span><div><b>Structured learning</b><small>Small lessons that build on each other.</small></div><i>↗</i></div><div class="feature-point"><span>02</span><div><b>Real code examples</b><small>See concepts in action, not just theory.</small></div><i>↗</i></div><div class="feature-point"><span>03</span><div><b>Practice as you learn</b><small>Experiment in your own browser.</small></div><i>↗</i></div></div>
+    </section>
+
+    <section class="playground-section" id="playground">
+      <div class="section-heading"><div><div class="eyebrow">MAKE SOMETHING HAPPEN</div><h2>Your browser. <span class="gradient-text">Your lab.</span></h2><p>Change the code and run it. No setup, no downloads.</p></div><span class="safe-note">HTML / CSS / JS preview</span></div>
+      <div class="playground">
+        <div class="editor-pane"><div class="editor-top"><div><span class="file-dot"></span> index.html</div><button class="run-btn" id="runCode">▶ Run code</button></div><textarea id="codeEditor" spellcheck="false" aria-label="HTML code editor"><!DOCTYPE html>
+<html>
+  <body>
+    <h1>Hello, world!</h1>
+    <p>I am learning with CodeOrbit.</p>
+    <button onclick="alert('Keep building!')">Click me</button>
+  </body>
+</html></textarea></div>
+        <div class="preview-pane"><div class="preview-top"><span>LIVE PREVIEW</span><span class="preview-indicator">● Ready</span></div><iframe id="previewFrame" title="Code preview" sandbox="allow-scripts"></iframe></div>
+      </div>
+      <p class="playground-hint">Tip: Edit the HTML on the left, then select <b>Run code</b> to see your changes.</p>
+    </section>
+
+    <section class="cta-section"><div class="cta-orb">✳</div><div><div class="eyebrow">YOUR JOURNEY STARTS WITH ONE CLICK</div><h2>Curiosity looks good on you.</h2><p>Choose your first lesson and start creating.</p></div><a class="btn btn-primary btn-large" href="#explore">Find your first course <span>→</span></a></section>
+  </main>
+
+  <footer><a class="brand" href="#"><span class="brand-mark">⌘</span><span>code<span class="brand-accent">orbit</span></span></a><span>© 2026 CodeOrbit. Built for curious minds.</span><div><a href="#explore">Courses</a><a href="#playground">Playground</a></div></footer>
+
+  <div class="modal-backdrop" id="courseModal"><section class="modal course-modal"><button class="modal-close" data-close="courseModal">×</button><div id="courseModalContent"></div></section></div>
+  <div class="modal-backdrop" id="adminModal"><section class="modal admin-modal"><button class="modal-close" data-close="adminModal">×</button><div class="eyebrow">CONTENT MANAGEMENT</div><h2>Course studio</h2><p class="modal-subtitle">Add a course to this browser's local demo library.</p><form id="courseForm"><label>Course title<input name="title" required placeholder="e.g. Python for Beginners"></label><label>Short description<textarea name="description" required placeholder="What will students learn?"></textarea></label><div class="form-row"><label>Category<select name="category"><option>Programming</option><option>Frontend</option><option>Database</option><option>Career</option></select></label><label>Level<select name="level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label></div><label>Icon / emoji<input name="icon" maxlength="4" value="✦"></label><button class="btn btn-primary" type="submit">Add course <span>＋</span></button></form><p class="admin-note">Demo only: courses are saved in this browser using localStorage. A real multi-user admin panel needs a backend and database.</p></section></div>
+  <script src="app.js"></script>
+</body>
+</html>
