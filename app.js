@@ -1,3 +1,7 @@
+// ================= CONFIG =================
+const API = "https://codeorbit-backend-f4lj.onrender.com/api";
+
+// ================= BUILT-IN COURSES =================
 const defaultCourses = [
  {id:"html",title:"HTML",category:"Frontend",level:"Beginner",icon:"5",description:"Build the structure of every website, from your first tag to semantic layouts.",lessons:["Introduction to HTML","HTML Editors","HTML Elements","HTML Attributes","Headings & Paragraphs","Links & Images","Tables","Forms","Semantic HTML"],color:"#eaf2ff",ink:"#3974c8"},
  {id:"css",title:"CSS",category:"Frontend",level:"Beginner",icon:"✳",description:"Style beautiful, responsive interfaces with layouts, typography and motion.",lessons:["Introduction to CSS","Selectors","Colors & Backgrounds","Box Model","Flexbox","CSS Grid","Responsive Design","Transitions & Animations"],color:"#e9f8f3",ink:"#26966f"},
@@ -12,30 +16,240 @@ const defaultCourses = [
  {id:"git",title:"Git & GitHub",category:"Career",level:"Beginner",icon:"⑂",description:"Track your work, collaborate with others and publish your projects.",lessons:["Version Control","Install Git","Repositories","Commits","Branches","Merge","GitHub Basics","Pull Requests"],color:"#fff0e9",ink:"#c46c43"},
  {id:"dsa",title:"Data Structures",category:"Programming",level:"Intermediate",icon:"◇",description:"Learn how to organize data and solve problems efficiently.",lessons:["DSA Introduction","Arrays","Linked Lists","Stacks","Queues","Trees","Graphs","Searching","Sorting","Big O Notation"],color:"#f0edff",ink:"#7458c9"}
 ];
-let courses = loadCourses();
+
+// ================= STATE =================
+let remoteCourses = [];          // courses saved in the database
+let remoteError = false;
+let courses = [...defaultCourses];
 let activeCategory = "All";
+let session = loadSession();     // {token, user:{name,email,role}} or null
+let authMode = "login";          // "login" | "signup"
 const grid = document.getElementById("courseGrid");
-function loadCourses(){try{return [...defaultCourses,...JSON.parse(localStorage.getItem("codeorbit_courses")||"[]")]}catch{return defaultCourses}}
-function saveCustomCourses(){localStorage.setItem("codeorbit_courses",JSON.stringify(courses.filter(c=>!defaultCourses.some(d=>d.id===c.id))))}
+const $ = id => document.getElementById(id);
+
+// old demo data from localStorage is no longer used
+try { localStorage.removeItem("codeorbit_courses"); } catch {}
+
+// ================= SESSION =================
+function loadSession(){
+  try { return JSON.parse(localStorage.getItem("codeorbit_session")) || null; } catch { return null; }
+}
+function saveSession(s){
+  session = s;
+  try { s ? localStorage.setItem("codeorbit_session", JSON.stringify(s)) : localStorage.removeItem("codeorbit_session"); } catch {}
+}
+
+// ================= API HELPER =================
+async function api(path, options = {}){
+  const headers = { "Content-Type": "application/json" };
+  if (session) headers.Authorization = "Bearer " + session.token;
+  const res = await fetch(API + path, { ...options, headers });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok){
+    if (res.status === 401 && session){ saveSession(null); renderAdmin(); }
+    throw new Error(data.error || "Something went wrong. Please try again.");
+  }
+  return data;
+}
+
+function fromServer(c){
+  return {
+    id: c._id,
+    title: c.title,
+    description: c.description || "",
+    category: c.category || "Programming",
+    level: c.level || "Beginner",
+    icon: c.icon || "✦",
+    lessons: ["Introduction","Getting Started","Core Concepts","Practice"],
+    remote: true
+  };
+}
+
+async function loadRemoteCourses(){
+  try {
+    const list = await api("/courses");
+    remoteCourses = list.map(fromServer);
+    remoteError = false;
+  } catch {
+    remoteError = true;
+  }
+  courses = [...defaultCourses, ...remoteCourses];
+  renderCourses();
+  renderAdminCourseList();
+}
+
+// ================= COURSES UI =================
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
+
 function renderCourses(){
- const q=document.getElementById("courseSearch").value.trim().toLowerCase();
+ const q=$("courseSearch").value.trim().toLowerCase();
  const shown=courses.filter(c=>(activeCategory==="All"||c.category===activeCategory)&&(`${c.title} ${c.description} ${c.category}`).toLowerCase().includes(q));
- grid.innerHTML=shown.length?shown.map(c=>`<article class="course-card" data-id="${c.id}" style="--icon-bg:${c.color||"#f0edff"};--icon-color:${c.ink||"#7257e8"};--glow:${c.color||"#eeeaff"}"><div class="course-card-top"><div class="course-icon">${escapeHtml(c.icon||"✦")}</div><span class="course-arrow">↗</span></div><h3>${escapeHtml(c.title)}</h3><p>${escapeHtml(c.description)}</p><div class="course-meta"><span>${escapeHtml(c.level)}</span><span>·</span><span>${c.lessons.length} lessons</span><span>·</span><span>${escapeHtml(c.category)}</span></div></article>`).join(""):`<div class="empty-state">No courses found. Try another search.</div>`;
+ grid.innerHTML=shown.length?shown.map(c=>`<article class="course-card" data-id="${escapeHtml(c.id)}" style="--icon-bg:${c.color||"#f0edff"};--icon-color:${c.ink||"#7257e8"};--glow:${c.color||"#eeeaff"}"><div class="course-card-top"><div class="course-icon">${escapeHtml(c.icon||"✦")}</div><span class="course-arrow">↗</span></div><h3>${escapeHtml(c.title)}</h3><p>${escapeHtml(c.description)}</p><div class="course-meta"><span>${escapeHtml(c.level)}</span><span>·</span><span>${c.lessons.length} lessons</span><span>·</span><span>${escapeHtml(c.category)}</span></div></article>`).join(""):`<div class="empty-state">No courses found. Try another search.</div>`;
  document.querySelectorAll(".course-card").forEach(card=>card.addEventListener("click",()=>openCourse(card.dataset.id)));
  document.querySelector('[data-category="All"] span').textContent=courses.length;
 }
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
-document.getElementById("courseSearch").addEventListener("input",renderCourses);
-document.getElementById("categoryTabs").addEventListener("click",e=>{const b=e.target.closest("button[data-category]");if(!b)return;activeCategory=b.dataset.category;document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t===b));renderCourses()});
-function openCourse(id){const c=courses.find(x=>x.id===id);if(!c)return;document.getElementById("courseModalContent").innerHTML=`<div class="eyebrow">${escapeHtml(c.category)} · ${escapeHtml(c.level)}</div><h2>${escapeHtml(c.title)} Tutorial</h2><p class="modal-subtitle">${escapeHtml(c.description)}</p><div class="lesson-list">${c.lessons.map((l,i)=>`<div class="lesson-item"><span>${String(i+1).padStart(2,"0")} &nbsp; ${escapeHtml(l)}</span><span>Read lesson ↗</span></div>`).join("")}</div><p class="admin-note">Lesson outline preview. Full lesson content and student progress will be connected in the next development stage.</p>`;showModal("courseModal")}
-function showModal(id){document.getElementById(id).classList.add("open")}
-document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>document.getElementById(b.dataset.close).classList.remove("open")));
+
+$("courseSearch").addEventListener("input",renderCourses);
+$("categoryTabs").addEventListener("click",e=>{const b=e.target.closest("button[data-category]");if(!b)return;activeCategory=b.dataset.category;document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t===b));renderCourses()});
+
+function openCourse(id){
+  const c=courses.find(x=>x.id===id);
+  if(!c)return;
+  $("courseModalContent").innerHTML=`<div class="eyebrow">${escapeHtml(c.category)} · ${escapeHtml(c.level)}</div><h2>${escapeHtml(c.title)} Tutorial</h2><p class="modal-subtitle">${escapeHtml(c.description)}</p><div class="lesson-list">${c.lessons.map((l,i)=>`<div class="lesson-item"><span>${String(i+1).padStart(2,"0")} &nbsp; ${escapeHtml(l)}</span><span>Read lesson ↗</span></div>`).join("")}</div><p class="admin-note">Lesson outline preview. Full lesson content and student progress will be connected in the next development stage.</p>`;
+  showModal("courseModal");
+}
+
+// ================= MODALS =================
+function showModal(id){$(id).classList.add("open")}
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>$(b.dataset.close).classList.remove("open")));
 document.querySelectorAll(".modal-backdrop").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open")}));
-document.getElementById("adminOpen").addEventListener("click",()=>showModal("adminModal"));
-document.getElementById("courseForm").addEventListener("submit",e=>{e.preventDefault();const f=new FormData(e.target);const title=f.get("title").trim();const id="custom-"+Date.now();courses.push({id,title,description:f.get("description").trim(),category:f.get("category"),level:f.get("level"),icon:f.get("icon")||"✦",lessons:["Introduction","Getting Started","Core Concepts","Practice"]});saveCustomCourses();renderCourses();e.target.reset();document.getElementById("adminModal").classList.remove("open");document.getElementById("explore").scrollIntoView({behavior:"smooth"});});
-document.getElementById("runCode").addEventListener("click",()=>{const code=document.getElementById("codeEditor").value;document.getElementById("previewFrame").srcdoc=code;});
-document.getElementById("runCode").click();
-document.getElementById("themeToggle").addEventListener("click",()=>{document.body.classList.toggle("dark");document.getElementById("themeToggle").textContent=document.body.classList.contains("dark")?"☀":"☾"});
-document.getElementById("mobileMenu").addEventListener("click",()=>{document.getElementById("explore").scrollIntoView({behavior:"smooth"})});
-document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();document.getElementById("courseSearch").focus()}if(e.key==="Escape")document.querySelectorAll(".modal-backdrop").forEach(m=>m.classList.remove("open"))});
+
+// ================= ADMIN PANEL =================
+function setMsg(text, isError){
+  const el = $("adminMsg");
+  el.textContent = text || "";
+  el.style.color = isError ? "#d64545" : "";
+}
+
+function renderAdmin(){
+  const loggedIn = !!session;
+  const isAdmin = loggedIn && session.user.role === "admin";
+
+  $("authPanel").hidden = loggedIn;
+  $("studioPanel").hidden = !isAdmin;
+  $("userPanel").hidden = !(loggedIn && !isAdmin);
+  $("sessionLine").hidden = !loggedIn;
+
+  if (!loggedIn){
+    const signup = authMode === "signup";
+    $("adminTitle").textContent = signup ? "Create account" : "Admin login";
+    $("adminSubtitle").textContent = signup ? "Sign up to save your learning progress." : "Log in to manage courses.";
+    $("nameField").hidden = !signup;
+    $("authSubmit").textContent = signup ? "Create account" : "Log in";
+    $("authToggle").textContent = signup ? "Already have an account? Log in" : "New here? Create an account";
+    $("authForm").elements.password.autocomplete = signup ? "new-password" : "current-password";
+  } else {
+    $("sessionName").textContent = session.user.name || session.user.email;
+    if (isAdmin){
+      $("adminTitle").textContent = "Course studio";
+      $("adminSubtitle").textContent = "Courses you add here are saved to the database and shown to every visitor.";
+    } else {
+      $("adminTitle").textContent = "You're logged in";
+      $("adminSubtitle").textContent = "Only the site admin can add or remove courses.";
+    }
+  }
+  renderAdminCourseList();
+}
+
+function renderAdminCourseList(){
+  const box = $("adminCourseList");
+  if (!box) return;
+  if (remoteError){
+    box.innerHTML = `<p class="admin-note">Couldn't load courses from the server. Check your connection and reload the page.</p>`;
+    return;
+  }
+  box.innerHTML = remoteCourses.length
+    ? remoteCourses.map(c=>`<div class="admin-course-row"><span>${escapeHtml(c.icon)} &nbsp;${escapeHtml(c.title)} <small>${escapeHtml(c.category)}</small></span><button type="button" class="admin-delete" data-del="${escapeHtml(c.id)}">Delete</button></div>`).join("")
+    : `<p class="admin-note">No courses added yet. Use the form above to add your first one.</p>`;
+}
+
+$("adminOpen").addEventListener("click",()=>{ setMsg(""); renderAdmin(); showModal("adminModal"); });
+
+$("authToggle").addEventListener("click",e=>{
+  e.preventDefault();
+  authMode = authMode === "login" ? "signup" : "login";
+  setMsg("");
+  renderAdmin();
+});
+
+$("authForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const btn = $("authSubmit");
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Please wait…";
+  setMsg("Connecting to the server. The first request can take up to a minute.");
+  try {
+    const body = { email: f.get("email").trim(), password: f.get("password") };
+    if (authMode === "signup") body.name = (f.get("name") || "").trim();
+    const data = await api(authMode === "signup" ? "/auth/signup" : "/auth/login", { method:"POST", body: JSON.stringify(body) });
+    saveSession({ token: data.token, user: data.user });
+    e.target.reset();
+    setMsg("");
+    renderAdmin();
+  } catch (err) {
+    setMsg(err.message, true);
+    btn.textContent = label;
+  } finally {
+    btn.disabled = false;
+    if (!session) btn.textContent = label;
+  }
+});
+
+$("logoutBtn").addEventListener("click",e=>{
+  e.preventDefault();
+  saveSession(null);
+  authMode = "login";
+  setMsg("");
+  renderAdmin();
+});
+
+$("courseForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const btn = e.target.querySelector('button[type="submit"]');
+  const label = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+  try {
+    const created = await api("/courses", { method:"POST", body: JSON.stringify({
+      title: f.get("title").trim(),
+      description: f.get("description").trim(),
+      category: f.get("category"),
+      level: f.get("level"),
+      icon: f.get("icon") || "✦"
+    })});
+    remoteCourses.unshift(fromServer(created));
+    courses = [...defaultCourses, ...remoteCourses];
+    renderCourses();
+    renderAdminCourseList();
+    e.target.reset();
+    setMsg("Course added.");
+  } catch (err) {
+    setMsg(err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = label;
+  }
+});
+
+$("adminCourseList").addEventListener("click",async e=>{
+  const b = e.target.closest("[data-del]");
+  if (!b) return;
+  const course = remoteCourses.find(c=>c.id===b.dataset.del);
+  if (!course || !confirm(`Delete "${course.title}"? This can't be undone.`)) return;
+  b.disabled = true;
+  try {
+    await api("/courses/" + encodeURIComponent(course.id), { method:"DELETE" });
+    remoteCourses = remoteCourses.filter(c=>c.id!==course.id);
+    courses = [...defaultCourses, ...remoteCourses];
+    renderCourses();
+    renderAdminCourseList();
+    setMsg("Course deleted.");
+  } catch (err) {
+    b.disabled = false;
+    setMsg(err.message, true);
+  }
+});
+
+// ================= PLAYGROUND, THEME, SHORTCUTS =================
+$("runCode").addEventListener("click",()=>{const code=$("codeEditor").value;$("previewFrame").srcdoc=code;});
+$("runCode").click();
+$("themeToggle").addEventListener("click",()=>{document.body.classList.toggle("dark");$("themeToggle").textContent=document.body.classList.contains("dark")?"☀":"☾"});
+$("mobileMenu").addEventListener("click",()=>{$("explore").scrollIntoView({behavior:"smooth"})});
+document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();$("courseSearch").focus()}if(e.key==="Escape")document.querySelectorAll(".modal-backdrop").forEach(m=>m.classList.remove("open"))});
+
+// ================= START =================
 renderCourses();
+loadRemoteCourses();
