@@ -9,6 +9,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* styles for the login form and admin course list */
+    [hidden]{display:none!important}
+    #authForm{display:grid;gap:14px}
+    #authForm label{display:grid;gap:6px;font-weight:600;font-size:14px}
+    #authForm input{padding:12px 14px;border-radius:12px;border:1px solid rgba(128,128,160,.35);background:transparent;color:inherit;font:inherit}
+    #authForm input:focus{outline:2px solid rgba(114,87,232,.55);outline-offset:1px}
+    #authForm button{justify-self:start}
+    .admin-subhead{margin:22px 0 8px;font-size:15px}
+    .admin-course-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid rgba(128,128,160,.25)}
+    .admin-course-row small{opacity:.65;margin-left:6px}
+    .admin-delete{background:none;border:1px solid rgba(214,69,69,.5);color:#d64545;border-radius:10px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+    .admin-delete:hover{background:rgba(214,69,69,.1)}
+    .admin-delete:disabled{opacity:.5;cursor:wait}
+  </style>
 </head>
 <body>
   <div class="announcement"><span class="spark">✦</span> A better way to learn code <span class="announcement-muted">— practical lessons, zero noise.</span></div>
@@ -104,7 +119,51 @@
   <footer><a class="brand" href="#"><span class="brand-mark">⌘</span><span>code<span class="brand-accent">orbit</span></span></a><span>© 2026 CodeOrbit. Built for curious minds.</span><div><a href="#explore">Courses</a><a href="#playground">Playground</a></div></footer>
 
   <div class="modal-backdrop" id="courseModal"><section class="modal course-modal"><button class="modal-close" data-close="courseModal">×</button><div id="courseModalContent"></div></section></div>
-  <div class="modal-backdrop" id="adminModal"><section class="modal admin-modal"><button class="modal-close" data-close="adminModal">×</button><div class="eyebrow">CONTENT MANAGEMENT</div><h2>Course studio</h2><p class="modal-subtitle">Add a course to this browser's local demo library.</p><form id="courseForm"><label>Course title<input name="title" required placeholder="e.g. Python for Beginners"></label><label>Short description<textarea name="description" required placeholder="What will students learn?"></textarea></label><div class="form-row"><label>Category<select name="category"><option>Programming</option><option>Frontend</option><option>Database</option><option>Career</option></select></label><label>Level<select name="level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label></div><label>Icon / emoji<input name="icon" maxlength="4" value="✦"></label><button class="btn btn-primary" type="submit">Add course <span>＋</span></button></form><p class="admin-note">Demo only: courses are saved in this browser using localStorage. A real multi-user admin panel needs a backend and database.</p></section></div>
+
+  <div class="modal-backdrop" id="adminModal">
+    <section class="modal admin-modal">
+      <button class="modal-close" data-close="adminModal">×</button>
+      <div class="eyebrow">CONTENT MANAGEMENT</div>
+      <h2 id="adminTitle">Admin login</h2>
+      <p class="modal-subtitle" id="adminSubtitle">Log in to manage courses.</p>
+
+      <!-- Login / signup -->
+      <div id="authPanel">
+        <form id="authForm">
+          <label id="nameField" hidden>Your name<input name="name" placeholder="e.g. Mukesh" autocomplete="name"></label>
+          <label>Email<input name="email" type="email" required placeholder="you@example.com" autocomplete="email"></label>
+          <label>Password<input name="password" type="password" required minlength="6" placeholder="At least 6 characters" autocomplete="current-password"></label>
+          <button class="btn btn-primary" type="submit" id="authSubmit">Log in</button>
+        </form>
+        <p class="admin-note"><a href="#" id="authToggle">New here? Create an account</a></p>
+      </div>
+
+      <!-- Admin only: add and delete courses -->
+      <div id="studioPanel" hidden>
+        <form id="courseForm">
+          <label>Course title<input name="title" required placeholder="e.g. Python for Beginners"></label>
+          <label>Short description<textarea name="description" required placeholder="What will students learn?"></textarea></label>
+          <div class="form-row">
+            <label>Category<select name="category"><option>Programming</option><option>Frontend</option><option>Database</option><option>Career</option></select></label>
+            <label>Level<select name="level"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label>
+          </div>
+          <label>Icon / emoji<input name="icon" maxlength="4" value="✦"></label>
+          <button class="btn btn-primary" type="submit">Add course <span>＋</span></button>
+        </form>
+        <h3 class="admin-subhead">Courses you added</h3>
+        <div id="adminCourseList"></div>
+      </div>
+
+      <!-- Logged in, but not admin -->
+      <div id="userPanel" hidden>
+        <p class="admin-note">Course management is available to the site admin only.</p>
+      </div>
+
+      <p class="admin-note" id="adminMsg" role="status"></p>
+      <p class="admin-note" id="sessionLine" hidden>Signed in as <b id="sessionName"></b> · <a href="#" id="logoutBtn">Log out</a></p>
+    </section>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
